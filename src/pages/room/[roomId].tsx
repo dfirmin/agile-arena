@@ -35,7 +35,7 @@ const RoomPage = () => {
     const [participants, setParticipants] = useState<Participants>({});
     // const [participants, setParticipants] = useState([]);
     // State to track whether the current user has joined the room
-    const [hasJoined, setHasJoined] = useState<boolean>(false);
+    const [IsParticipant, setIsParticipant] = useState<boolean>(false);
 
     // State to track votes of participants
     const [votes, setVotes] = useState<Votes>({});
@@ -61,14 +61,10 @@ const RoomPage = () => {
         console.log('Connection failed: ', err.message);
         // You can implement additional logic here, like showing an error message to the user
         });
+        
         console.log("Use effect")
-        console.log("Getting roomid!")
-        console.log(`Room ID is ${roomId}`)
-        console.log(`Participants:`)
-        console.log(participants)
         if (roomId) {
-            console.log("New viewer arrived!")
-            console.log("Contact Server!")
+            console.log("New viewer arrived, contact server!")
             newSocket.emit('joinRoom', roomId);
             newSocket.on('participantsUpdate', (updatedParticipants) => {
                 console.log("Received participants update from server:", updatedParticipants);
@@ -80,11 +76,6 @@ const RoomPage = () => {
             };
           };
     }, [roomId]);
-
-    useEffect(() => {
-        // Check if the user is an admin from the URL query
-        setIsAdmin(router.query.admin === 'true');
-    }, [router.query.admin]);
 
     // Handle joining as a participant
     const handleJoinParticipant = () => {
@@ -100,8 +91,8 @@ const RoomPage = () => {
     socket.emit("newParticipant", { roomId, name: participantName });
   
     // Mark that the user has joined
-    setHasJoined(true);
-  };
+    setIsParticipant(true);
+    };
 
     // Handle joining as an admin
     const handleJoinAdmin = () => {
@@ -111,7 +102,7 @@ const RoomPage = () => {
     };
 
     const handleLeaveRoom = () => {
-        if (socket && hasJoined) {
+        if (socket) {
             // Emit the "leaveRoom" event to remove the participant from the room
             socket.emit("leaveRoom", roomId, participantName);
         }
@@ -148,7 +139,7 @@ const RoomPage = () => {
                 placeholder="Enter your name"
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
-                disabled={hasJoined}
+                disabled={IsParticipant}
             />  
             <div className="join-button-container">
                 <Button text="Join as Participant" onClick={handleJoinParticipant} colorScheme="black" />
@@ -162,7 +153,7 @@ const RoomPage = () => {
             <h2>Your Point Estimate</h2>
                 <div className="vote-options">
                     {storyPoints.map(point => (
-                    <button key={point} onClick={() => handleVote(point)} disabled={!hasJoined}>
+                    <button key={point} onClick={() => handleVote(point)} disabled={!IsParticipant}>
                         {point}
                     </button>
                     ))}
